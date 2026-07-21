@@ -1,7 +1,6 @@
 ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base-debian:latest
 FROM ${BUILD_FROM}
 
-# Entfernt python3-gevent aus APT, um Konflikte mit pip zu vermeiden
 RUN apt-get update && apt-get install -y \
     git \
     sudo \
@@ -18,13 +17,12 @@ RUN git clone https://github.com/stoffelll/rtkbase.git /opt/rtkbase
 
 WORKDIR /opt/rtkbase
 
-# Installiert die Requirements und erzwingt ein Update von gevent/greenlet für Python 3.12 Kompatibilität
 RUN if [ -f "web_app/requirements.txt" ]; then \
         pip3 install --no-cache-dir -r web_app/requirements.txt --break-system-packages && \
         pip3 install --no-cache-dir --upgrade "gevent>=23.9.1" greenlet urllib3 requests --break-system-packages; \
     fi
 
-# --- UMFASSENDER SYSTEMD / DBUS MOCK (Erfolgreich getestet) ---
+# --- UMFASSENDER SYSTEMD / DBUS MOCK (Final, mit _interfaces) ---
 RUN echo 'path = "/opt/rtkbase/web_app/ServiceController.py"' > patch.py && \
     echo 'with open(path, "r") as f: code = f.read()' >> patch.py && \
     echo 'mock = """' >> patch.py && \
@@ -45,6 +43,8 @@ RUN echo 'path = "/opt/rtkbase/web_app/ServiceController.py"' > patch.py && \
     echo '    def Service(self): return self' >> patch.py && \
     echo '    @property' >> patch.py && \
     echo '    def User(self): return b"root"' >> patch.py && \
+    echo '    @property' >> patch.py && \
+    echo '    def _interfaces(self): return set()' >> patch.py && \
     echo 'class Unit(DummySystemdObj):' >> patch.py && \
     echo '    def __init__(self, *args, **kwargs): pass' >> patch.py && \
     echo 'class Manager(DummySystemdObj):' >> patch.py && \
