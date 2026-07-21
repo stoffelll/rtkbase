@@ -1,20 +1,17 @@
 #!/usr/bin/env bash
-echo "Starting RTKBase Add-on..."
+echo "Starte RTKBase Add-on..."
 
 cd /opt/rtkbase
 
-# 1. GPSD starten (falls du einen lokalen GPS-Empfänger am ESP32/USB hast)
-# (Passt den Device-Pfad an, z.B. /dev/ttyV0 das wir vorhin angelegt haben)
-if [ -e /dev/ttyV0 ]; then
-    echo "Starte gpsd auf /dev/ttyV0..."
-    gpsd -F /var/run/gpsd.sock /dev/ttyV0
+# Wir prüfen, ob es ein Startskript oder python-Hauptskript gibt und starten es direkt
+if [ -f "server.py" ]; then
+    echo "Starte server.py..."
+    exec python3 server.py
+elif [ -f "run.py" ]; then
+    echo "Starte run.py..."
+    exec python3 run.py
+else
+    # Fallback: Falls RTKBase über ein flask/gunicorn oder ein eigenes Skript läuft
+    echo "Suche nach Startpunkten..."
+    exec python3 -m flask run --host=0.0.0.0 --port=80
 fi
-
-# 2. RTKBase Webserver im Hintergrund starten
-echo "Starte RTKBase Webserver..."
-# (Der genaue Pfad zum Webserver-Skript, meist in einem Unterordner oder direkt startbar)
-python3 -m rtkbase.web &
-
-# 3. Den Webserver-Prozess im Vordergrund halten, damit der Container nicht stoppt
-echo "RTKBase started"
-wait
