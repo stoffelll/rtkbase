@@ -90,18 +90,21 @@ man_help(){
 
 _check_user() {
   # RTKBASE_USER is a global variable
-  if [ "${1}" != 0 ] ; then
+  if [ -n "${1}" ] && [ "${1}" != "0" ] ; then
     RTKBASE_USER="${1}"
-      #TODO check if user exists and/or path exists ?
-      # warning for image creation, do the path exist ?
-  elif [[ -z $(logname) ]] ; then
-    echo 'The logname command return an empty value. Please reboot and retry.'
-    exit 1
-  elif [[ $(logname) == 'root' ]]; then
-    echo 'The logname command return "root". Please reboot or use --user argument to choose the correct user which should run rtkbase services'
+  elif [ -z "$SUDO_USER" ] ; then
+    # Fallback auf den normalen User, falls nicht via sudo aufgerufen
+    if [ -z "$USER" ] || [ "$USER" == "root" ]; then
+        echo 'Konnte den Benutzer nicht ermitteln. Bitte --user Argument nutzen.'
+        exit 1
+    else
+        RTKBASE_USER="$USER"
+    fi
+  elif [ "$SUDO_USER" == 'root' ]; then
+    echo 'SUDO_USER ist root. Bitte nutze das --user Argument, um den korrekten User anzugeben.'
     exit 1
   else
-    RTKBASE_USER=$(logname)
+    RTKBASE_USER="$SUDO_USER"
   fi
 }
 
