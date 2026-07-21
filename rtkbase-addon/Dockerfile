@@ -25,7 +25,7 @@ RUN if [ -f "web_app/requirements.txt" ]; then \
     fi
 
 # --- PRÄZISER PATCH FÜR DEN MANAGER IN ServiceController.py ---
-RUN python3 -c 'path="/opt/rtkbase/web_app/ServiceController.py"; code=open(path).read(); target="manager = Manager(_autoload=True)"; replacement="try:\n    manager = Manager(_autoload=True)\nexcept Exception:\n    manager = None"; open(path, "w").write(code.replace(target, replacement, 1)) if target in code else None'
+RUN python3 -c 'path="/opt/rtkbase/web_app/ServiceController.py"; code=open(path).read(); target="manager = Manager(_autoload=True)"; replacement="try:\n    manager = Manager(_autoload=True)\nexcept Exception:\n    manager = None"; open(path, "w").write(code.replace(target, replacement, 1))'
 
 COPY run.sh /
 RUN chmod a+x /run.sh
