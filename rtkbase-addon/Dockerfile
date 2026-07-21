@@ -24,23 +24,8 @@ RUN if [ -f "web_app/requirements.txt" ]; then \
         pip3 install --no-cache-dir --ignore-installed urllib3 requests -r web_app/requirements.txt --break-system-packages; \
     fi
 
-# --- SAUBERER PYTHON-PATCH FÜR SYSTEMD / DBUS ---
-RUN python3 -c '
-path = "/opt/rtkbase/web_app/ServiceController.py"
-with open(path, "r") as f:
-    content = f.read()
-
-old_code = "manager = Manager(_autoload=True)"
-new_code = "try:\n    manager = Manager(_autoload=True)\nexcept:\n    manager = None"
-
-if old_code in content:
-    content = content.replace(old_code, new_code)
-    with open(path, "w") as f:
-        f.write(content)
-    print("Patch erfolgreich angewendet!")
-else:
-    print("Zielcode nicht gefunden!")
-'
+# --- ROBUSTER PYTHON-PATCH ALS EINZEILER ---
+RUN python3 -c 'p = "/opt/rtkbase/web_app/ServiceController.py"; c = open(p).read(); open(p, "w").write(c.replace("manager = Manager(_autoload=True)", "try:\n    manager = Manager(_autoload=True)\nexcept:\n    manager = None"))'
 
 COPY run.sh /
 RUN chmod a+x /run.sh
