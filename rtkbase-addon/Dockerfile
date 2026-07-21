@@ -1,7 +1,7 @@
 ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base-debian:latest
 FROM ${BUILD_FROM}
 
-# Grundlegende Systemwerkzeuge und Python-Abhängigkeiten direkt installieren
+# Grundlegende Systemwerkzeuge, Build-Tools und systemd-Entwicklungsheader installieren
 RUN apt-get update && apt-get install -y \
     git \
     sudo \
@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-dev \
     build-essential \
+    pkg-config \
+    libsystemd-dev \
     python3-gevent \
     python3-flask \
     python3-requests \
@@ -20,7 +22,7 @@ RUN git clone https://github.com/stoffelll/rtkbase.git /opt/rtkbase
 
 WORKDIR /opt/rtkbase
 
-# Falls es eine requirements.txt gibt, installieren wir diese zur Sicherheit direkt mit pip (global, ohne --user)
+# Requirements installieren (pkg-config und libsystemd-dev sind nun da, also baut auch pystemd sauber durch)
 RUN if [ -f "web_app/requirements.txt" ]; then pip3 install --no-cache-dir -r web_app/requirements.txt --break-system-packages; fi
 
 # Startskript kopieren
