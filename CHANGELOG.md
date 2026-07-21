@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.7.1] - not released
+
+### Added
+
+### Changed
+
+### Fixed
+- Fix missing zeroconf installation when executing `./install.sh --all`. Thanks to @Jef239 [#520](https://github.com/Stefal/rtkbase/issues/520)
+- Fix crash whith empty zeroconf service list and missing WinPcap. Thanks to @Jef239 [#520](https://github.com/Stefal/rtkbase/issues/520)
+
+### Deprecated
+
+### Security
+
 ## [2.7.0] - 2025-11-28
 
 ### Added
