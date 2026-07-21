@@ -1,0 +1,16 @@
+name: "RTKBase"
+description: "Web-basierte GNSS Base Station"
+version: "1.0.0"
+slug: "rtkbase_custom"
+init: false
+arch:
+  - aarch64
+  - amd64
+  - armv7
+ports:
+  80/tcp: 16080 # Mappt den internen Port (oft 80 bei RTKBase) auf 8080 außen
+  2101/tcp: 2101 # Mappt den internen Port (oft 80 bei RTKBase) auf 8080 außen
+uart: true     # GANZ WICHTIG: Erlaubt den Zugriff auf serielle USB-Geräte (für den GNSS-Empfänger)
+map:
+  - share:rw   # Optional: Ordner einbinden, um Konfigurationen persistent zu speichern
+image: "local/{arch}-rtkbase-custom"
