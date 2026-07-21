@@ -24,8 +24,8 @@ RUN if [ -f "web_app/requirements.txt" ]; then \
         pip3 install --no-cache-dir --ignore-installed urllib3 requests -r web_app/requirements.txt --break-system-packages; \
     fi
 
-# --- ULTRA-ROBUSTER EINZEILER-PATCH ---
-RUN python3 -c 'p="/opt/rtkbase/web_app/ServiceController.py"; open(p, "w").write(open(p).read().replace("manager = Manager(_autoload=True)", "try:\n    manager = Manager(_autoload=True)\nexcept:\n    manager = None"))'
+# --- KORREKTER PATCH NUR FÜR DEN MANAGER-AUFRUF ---
+RUN python3 -c 'p="/opt/rtkbase/web_app/ServiceController.py"; open(p, "w").write(open(p).read().replace("manager = Manager(_autoload=True)", "try:\n    manager = Manager(_autoload=True)\nexcept Exception:\n    manager = None"))'
 
 COPY run.sh /
 RUN chmod a+x /run.sh
