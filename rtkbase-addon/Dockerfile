@@ -16,7 +16,6 @@ RUN apt-get update && apt-get install -y \
     python3-requests \
     && rm -rf /var/lib/apt/lists/*
 
-# Repository klonen (lädt den Code immer frisch herunter)
 RUN git clone https://github.com/stoffelll/rtkbase.git /opt/rtkbase
 
 WORKDIR /opt/rtkbase
@@ -25,9 +24,7 @@ RUN if [ -f "web_app/requirements.txt" ]; then \
         pip3 install --no-cache-dir --ignore-installed urllib3 requests -r web_app/requirements.txt --break-system-packages; \
     fi
 
-# --- UMFASSENDER SYSTEMD / DBUS MOCK ---
-# Wir bauen ein Skript, das die echten pystemd-Klassen überschreibt.
-# Das verhindert JEDEN weiteren DBus-Absturz in der gesamten Datei.
+# --- UMFASSENDER SYSTEMD / DBUS MOCK (Ohne Backslash-Escape-Fehler) ---
 RUN echo 'path = "/opt/rtkbase/web_app/ServiceController.py"' > patch.py && \
     echo 'with open(path, "r") as f: code = f.read()' >> patch.py && \
     echo 'mock = """' >> patch.py && \
@@ -49,7 +46,7 @@ RUN echo 'path = "/opt/rtkbase/web_app/ServiceController.py"' > patch.py && \
     echo 'class Manager(DummySystemdObj):' >> patch.py && \
     echo '    def __init__(self, *args, **kwargs): pass' >> patch.py && \
     echo '"""' >> patch.py && \
-    echo 'code = code.replace("class ServiceController(object):", mock + "\\nclass ServiceController(object):")' >> patch.py && \
+    echo 'code = code.replace("class ServiceController(object):", mock + "class ServiceController(object):")' >> patch.py && \
     echo 'with open(path, "w") as f: f.write(code)' >> patch.py && \
     python3 patch.py && \
     rm patch.py
