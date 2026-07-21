@@ -13,4 +13,3 @@ ports:
 uart: true     # GANZ WICHTIG: Erlaubt den Zugriff auf serielle USB-Geräte (für den GNSS-Empfänger)
 map:
   - share:rw   # Optional: Ordner einbinden, um Konfigurationen persistent zu speichern
-image: "local/{arch}-rtkbase-custom"
