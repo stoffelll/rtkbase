@@ -24,7 +24,7 @@ RUN if [ -f "web_app/requirements.txt" ]; then \
         pip3 install --no-cache-dir --ignore-installed urllib3 requests -r web_app/requirements.txt --break-system-packages; \
     fi
 
-# --- UMFASSENDER SYSTEMD / DBUS MOCK (Ohne Backslash-Escape-Fehler) ---
+# --- UMFASSENDER SYSTEMD / DBUS MOCK (Erweitert um Service.User) ---
 RUN echo 'path = "/opt/rtkbase/web_app/ServiceController.py"' > patch.py && \
     echo 'with open(path, "r") as f: code = f.read()' >> patch.py && \
     echo 'mock = """' >> patch.py && \
@@ -41,6 +41,10 @@ RUN echo 'path = "/opt/rtkbase/web_app/ServiceController.py"' > patch.py && \
     echo '    def Unit(self): return self' >> patch.py && \
     echo '    @property' >> patch.py && \
     echo '    def Manager(self): return self' >> patch.py && \
+    echo '    @property' >> patch.py && \
+    echo '    def Service(self): return self' >> patch.py && \
+    echo '    @property' >> patch.py && \
+    echo '    def User(self): return b"root"' >> patch.py && \
     echo 'class Unit(DummySystemdObj):' >> patch.py && \
     echo '    def __init__(self, *args, **kwargs): pass' >> patch.py && \
     echo 'class Manager(DummySystemdObj):' >> patch.py && \
