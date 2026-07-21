@@ -1,8 +1,31 @@
-#!/usr/bin/env bash
+#!/bin/bash
+set -e
+
+echo "Lese Home Assistant Add-on Konfiguration..."
+
+# Lese die Werte sicher mit jq aus
+VCP_ENABLED=$(jq --raw-output '.virtual_com_port_enabled // false' /data/options.json)
+VCP_IP=$(jq --raw-output '.virtual_com_port_ip // ""' /data/options.json)
+VCP_PORT=$(jq --raw-output '.virtual_com_port_port // 6638' /data/options.json)
+
+if [ "$VCP_ENABLED" = "true" ] && [ -n "$VCP_IP" ]; then
+    echo "Virtueller COM-Port aktiviert! Verbinde zu TCP $VCP_IP:$VCP_PORT -> /dev/ttyV0"
+    # Starte socat im Hintergrund
+    socat pty,link=/dev/ttyV0,raw,echo=0 tcp:${VCP_IP}:${VCP_PORT} &
+    
+    # Warte kurz, damit die virtuelle Schnittstelle erstellt wird
+    sleep 2
+    
+    if [ -e /dev/ttyV0 ]; then
+        echo "/dev/ttyV0 erfolgreich erstellt."
+    else
+        echo "FEHLER: /dev/ttyV0 konnte nicht erstellt werden. socat fehlgeschlagen?"
+    fi
+else
+    echo "Virtueller COM-Port ist deaktiviert oder IP fehlt."
+fi
+
 echo "Starte RTKBase Add-on Webserver..."
-
 cd /opt/rtkbase/web_app
-
-# Startet den RTKBase Webserver direkt im Vordergrund auf Port 80
-# (Home Assistant leitet Port 80 intern auf deine 16080 nach außen um)
+#python3 server.py
 exec python3 server.py --port 80
