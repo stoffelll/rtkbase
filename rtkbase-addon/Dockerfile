@@ -22,8 +22,10 @@ RUN git clone https://github.com/stoffelll/rtkbase.git /opt/rtkbase
 
 WORKDIR /opt/rtkbase
 
-# Requirements installieren (pkg-config und libsystemd-dev sind nun da, also baut auch pystemd sauber durch)
-RUN if [ -f "web_app/requirements.txt" ]; then pip3 install --no-cache-dir -r web_app/requirements.txt --break-system-packages; fi
+# Wir installieren die Requirements, ignorieren dabei aber Debian-Paketkonflikte von urllib3/requests explizit
+RUN if [ -f "web_app/requirements.txt" ]; then \
+        pip3 install --no-cache-dir --ignore-installed urllib3 requests -r web_app/requirements.txt --break-system-packages; \
+    fi
 
 # Startskript kopieren
 COPY run.sh /
