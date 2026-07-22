@@ -81,7 +81,7 @@ RUN echo 'path = "/opt/rtkbase/web_app/ServiceController.py"' > patch.py && \
     echo 'class Unit(DummySystemdObj): pass' >> patch.py && \
     echo 'class Manager(DummySystemdObj): pass' >> patch.py && \
     echo '"""' >> patch.py && \
-    echo 'code = code.replace("class ServiceController(object):", mock + "\\nclass ServiceController(object):")' >> patch.py && \
+    echo 'code = code.replace("class ServiceController(object):", mock + "class ServiceController(object):")' >> patch.py && \
     echo 'with open(path, "w") as f: f.write(code)' >> patch.py && \
     python3 patch.py && \
     rm patch.py
