@@ -1071,6 +1071,7 @@ if __name__ == "__main__":
                     '%s:%s' % ('[::1]', args.port or rtkbaseconfig.get("general", "web_port", fallback=80)) ],
         'workers': 1,
         'worker_class': 'gevent',
+        'timeout': 120,
         'graceful_timeout': 10,
         'loglevel': 'debug' if args.debug else 'warning',
         }

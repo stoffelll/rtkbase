@@ -13,6 +13,7 @@
 - Keep the traditional serial settings UI for standalone installations while using Home Assistant add-on options as the connection source inside the add-on.
 
 ### Fixed
+- Fix RTKRCV launch locking, bounded prompt handling, and configuration discovery in the Home Assistant container.
 - Install `rtkrcv`, `convbin`, and `str2str` under `/usr/local/bin` in the Home Assistant image so coordinate processing and log conversion can start.
 - Invalidate the Docker source layer for every add-on release so updated RTKBase web templates are included in rebuilt images.
 - Migrate legacy `virtual_com_port_*` options and remove the obsolete persisted `ttyV0` value in TCP mode.

@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.3] - 2026-07-22
+
+### Fixed
+
+- RTKRCV ohne zusammengesetzten Shell-Befehl und mit begrenztem Prompt-Timeout gestartet.
+- Lock-Reihenfolge beim Einlesen der RTKRCV-Optionen korrigiert.
+- Suche nach RTKRCV-Konfigurationsdateien plattformunabhaengig zusammengesetzt; die Liste ist nicht mehr faelschlich leer.
+- Gunicorn-Timeout fuer die interaktive RTKRCV-Initialisierung auf 120 Sekunden angehoben.
+- Bei einem RTKRCV-Prompt-Timeout wird die bisherige Prozessausgabe ins Add-on-Protokoll geschrieben.
+
 ## [1.2.2] - 2026-07-22
 
 ### Fixed

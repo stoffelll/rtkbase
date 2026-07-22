@@ -52,7 +52,14 @@ class RtkController:
         self.current_config = ""
 
     def expectAnswer(self, last_command = ""):
-        a = self.child.expect(["rtkrcv>", pexpect.EOF, "error"])
+        try:
+            a = self.child.expect([r"rtkrcv>\s*", pexpect.EOF, "error"], timeout=15)
+        except pexpect.TIMEOUT:
+            output = self.child.before or b""
+            if isinstance(output, bytes):
+                output = output.decode("utf-8", errors="replace")
+            print("Timeout while waiting for rtkrcv prompt after {}. Output: {}".format(last_command, output), flush=True)
+            return -3
         # check rtkrcv output for any errors
         if a == 1:
             print("got EOF while waiting for rtkrcv> . Shutting down")
@@ -77,28 +84,36 @@ class RtkController:
             #config_name = "rtkrcv_rtk_static_emonie.conf"
 
         if not self.launched:
+            if "/" in config_name:
+                config_file = config_name
+            else:
+                config_file = os.path.join(self.config_path, config_name)
+
+            command = os.path.join(self.bin_path, "rtkrcv")
+            print('Launching rtkrcv with: "{} -o {}"'.format(command, config_file), flush=True)
 
             self.semaphore.acquire()
+            try:
+                self.child = pexpect.spawn(
+                    command,
+                    ["-o", config_file],
+                    cwd=self.bin_path,
+                    echo=False,
+                    timeout=15,
+                )
 
-            if "/" in config_name:
-                spawn_command = self.bin_path + "/rtkrcv -o " + config_name
-            else:
-                spawn_command = self.bin_path + "/rtkrcv -o " + os.path.join(self.config_path, config_name)
-
-            self.child = pexpect.spawn(spawn_command, cwd = self.bin_path, echo = False)
-
-            print('Launching rtkrcv with: "' + spawn_command + '"')
-
-            if self.expectAnswer("spawn") < 0:
+                if self.expectAnswer("spawn") < 0:
+                    self.child.terminate(force=True)
+                    return -1
+            finally:
                 self.semaphore.release()
-                return -1
-            
-            #storing options/values in self.settings dict
-            self.get_all_options_values()
 
-            self.semaphore.release()
             self.launched = True
             self.current_config = config_name
+
+            # Read the options only after releasing the launch lock. The helper
+            # acquires the same semaphore itself.
+            self.get_all_options_values()
 
             # Set input type and input string
             #if self.set_option_value("inpstr1-type", self.input_type) and self.set_option_value("inpstr1-string", self.input_string):

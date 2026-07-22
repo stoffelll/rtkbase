@@ -251,7 +251,7 @@ class ConfigManager:
         self.available_configs = []
 
         # get a list of available .conf files in the config directory
-        configs = glob(self.config_path + "*.conf")
+        configs = glob(os.path.join(self.config_path, "*.conf"))
         self.available_configs = [os.path.basename(config) for config in configs]
 
 
@@ -271,7 +271,7 @@ class ConfigManager:
         if "/" in from_file:
             config_file_path = from_file
         else:
-            config_file_path = self.config_path + from_file
+            config_file_path = os.path.join(self.config_path, from_file)
 
         self.buffered_config.readFromFile(config_file_path)
 
