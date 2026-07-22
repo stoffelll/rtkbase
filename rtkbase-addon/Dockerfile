@@ -16,18 +16,25 @@ RUN apt-get update && apt-get install -y \
     procps \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. RTKLIB klonen und str2str für das System kompilieren
+# 2. Alle von RTKBase benoetigten RTKLIB-Programme kompilieren und an dem
+# von der Web-App erwarteten Ort installieren.
 RUN git clone https://github.com/rtklibexplorer/RTKLIB.git /tmp/RTKLIB && \
-    cd /tmp/RTKLIB/app/consapp/str2str/gcc && \
-    make && \
-    cp str2str /usr/bin/str2str && \
-    chmod +x /usr/bin/str2str && \
+    make --directory=/tmp/RTKLIB/app/consapp/str2str/gcc && \
+    make --directory=/tmp/RTKLIB/app/consapp/rtkrcv/gcc && \
+    make --directory=/tmp/RTKLIB/app/consapp/convbin/gcc && \
+    install -m 0755 /tmp/RTKLIB/app/consapp/str2str/gcc/str2str /usr/local/bin/str2str && \
+    install -m 0755 /tmp/RTKLIB/app/consapp/rtkrcv/gcc/rtkrcv /usr/local/bin/rtkrcv && \
+    install -m 0755 /tmp/RTKLIB/app/consapp/convbin/gcc/convbin /usr/local/bin/convbin && \
+    ln -s /usr/local/bin/str2str /usr/bin/str2str && \
+    /usr/local/bin/str2str --version && \
+    /usr/local/bin/rtkrcv --version && \
+    /usr/local/bin/convbin --version && \
     rm -rf /tmp/RTKLIB
 	
 # 3. RTKBase-Repository klonen. Die Add-on-Version ist absichtlich Teil der
 # Build-Schicht, damit Docker bei jedem Release den aktuellen Web-App-Quellcode
 # abruft und keinen veralteten git-clone-Layer wiederverwendet.
-ARG RTKBASE_SOURCE_VERSION=1.2.1
+ARG RTKBASE_SOURCE_VERSION=1.2.2
 RUN echo "Building RTKBase add-on ${RTKBASE_SOURCE_VERSION}" && \
     git clone --depth 1 --branch master https://github.com/stoffelll/rtkbase.git /opt/rtkbase
 

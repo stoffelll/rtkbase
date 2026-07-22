@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.2] - 2026-07-22
+
+### Fixed
+
+- Fehlendes `/usr/local/bin/rtkrcv` ergaenzt, das fuer Satellitenstatus und Koordinatenberechnung benoetigt wird.
+- `convbin` fuer die Rohdaten-/RINEX-Konvertierung ergaenzt.
+- `str2str` zusaetzlich am von RTKBase erwarteten Pfad `/usr/local/bin/str2str` installiert.
+- Image-Build prueft alle drei RTKLIB-Programme vor Abschluss der Build-Schicht.
+
 ## [1.2.1] - 2026-07-22
 
 ### Fixed

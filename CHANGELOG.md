@@ -13,6 +13,7 @@
 - Keep the traditional serial settings UI for standalone installations while using Home Assistant add-on options as the connection source inside the add-on.
 
 ### Fixed
+- Install `rtkrcv`, `convbin`, and `str2str` under `/usr/local/bin` in the Home Assistant image so coordinate processing and log conversion can start.
 - Invalidate the Docker source layer for every add-on release so updated RTKBase web templates are included in rebuilt images.
 - Migrate legacy `virtual_com_port_*` options and remove the obsolete persisted `ttyV0` value in TCP mode.
 - Fix the Home Assistant add-on service controller so the main RTKLIB bridge and dependent output services can be started and stopped without systemd.
