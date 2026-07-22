@@ -1,23 +1,18 @@
 #!/bin/bash
 set -e
 
-echo "Stelle Persistenz für RTKBase Einstellungen her..."
+echo "Stelle Persistenz fuer RTKBase-Einstellungen her..."
 
-# 1. Haupt-Einstellungsdatei persistieren
-if [ ! -f /data/settings.json ]; then
-    echo "{}" > /data/settings.json
-    [ -f /opt/rtkbase/settings.json ] && cp /opt/rtkbase/settings.json /data/settings.json
+# RTKBase liest und schreibt settings.conf, nicht settings.json.
+if [ ! -f /data/settings.conf ]; then
+    if [ -f /opt/rtkbase/settings.conf ]; then
+        cp /opt/rtkbase/settings.conf /data/settings.conf
+    else
+        cp /opt/rtkbase/settings.conf.default /data/settings.conf
+    fi
 fi
-rm -f /opt/rtkbase/settings.json
-ln -s /data/settings.json /opt/rtkbase/settings.json
-
-# 2. Conf-Ordner (für Koordinaten, Port-Settings) persistieren
-if [ ! -d /data/conf ]; then
-    mkdir -p /data/conf
-    [ -d /opt/rtkbase/conf ] && cp -r /opt/rtkbase/conf/* /data/conf/ 2>/dev/null || true
-fi
-rm -rf /opt/rtkbase/conf
-ln -s /data/conf /opt/rtkbase/conf
+rm -f /opt/rtkbase/settings.conf
+ln -s /data/settings.conf /opt/rtkbase/settings.conf
 
 echo "Lese Home Assistant Add-on Konfiguration..."
 
@@ -27,24 +22,26 @@ VCP_IP=$(jq --raw-output '.virtual_com_port_ip // ""' /data/options.json)
 VCP_PORT=$(jq --raw-output '.virtual_com_port_port // 6638' /data/options.json)
 
 if [ "$VCP_ENABLED" = "true" ] && [ -n "$VCP_IP" ]; then
-    echo "Virtueller COM-Port aktiviert! Verbinde zu TCP $VCP_IP:$VCP_PORT -> /tmp/ttyV0"
-    
-    # Entferne alte Reste, falls der Container neu startet
-    rm -f /tmp/ttyV0
-    
-    # Starte socat im Hintergrund
-    socat pty,link=/tmp/ttyV0,raw,echo=0 tcp:${VCP_IP}:${VCP_PORT} &
-    
-    sleep 2
-    if [ -e /tmp/ttyV0 ]; then
-        echo "/tmp/ttyV0 erfolgreich erstellt."
-    else
-        echo "FEHLER: /tmp/ttyV0 konnte nicht erstellt werden."
-    fi
+    export RTKBASE_TCP_HOST="$VCP_IP"
+    export RTKBASE_TCP_PORT="$VCP_PORT"
+    echo "TCP-GNSS-Quelle konfiguriert: $RTKBASE_TCP_HOST:$RTKBASE_TCP_PORT"
 else
-    echo "Virtueller COM-Port ist deaktiviert oder IP fehlt."
+    echo "FEHLER: TCP-GNSS-Quelle ist deaktiviert oder die IP-Adresse fehlt."
+    exit 1
 fi
+
+# Der Hauptdienst war auf einem normalen System per systemd beim Boot aktiv.
+# Im Add-on starten wir ihn direkt und lassen die Weboberflaeche denselben PID
+# anschliessend ueber den ServiceController verwalten.
+echo "Starte GNSS-Rohdaten-Bridge auf internem TCP-Port 5015..."
+/usr/bin/str2str \
+    -in "tcpcli://${RTKBASE_TCP_HOST}:${RTKBASE_TCP_PORT}" \
+    -out "tcpsvr://:5015" \
+    -b 1 &
+MAIN_PID=$!
+echo "$MAIN_PID" > /tmp/str2str_tcp.service.pid
+printf '{"str2str_tcp.service": true}\n' > /data/service_states.json
 
 echo "Starte RTKBase Add-on Webserver..."
 cd /opt/rtkbase/web_app
-python3 server.py
+exec python3 server.py --port 80

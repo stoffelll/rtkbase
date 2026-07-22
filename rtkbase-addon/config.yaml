@@ -1,17 +1,12 @@
-name: "RTKBase"
-description: "Web-basierte GNSS Base Station"
-version: "1.0.0"
 name: "RTKBase Custom"
-description: "RTKBase mit virtuellem COM-Port via socat"
-version: "1.0.1"
+description: "RTKBase mit TCP-angebundenem GNSS-Empfaenger"
+version: "1.1.0"
 slug: "rtkbase_custom"
 init: false
 arch:
-  - aarch64
   - amd64
-  - armv7
 options:
-  virtual_com_port_enabled: false
+  virtual_com_port_enabled: true
   virtual_com_port_ip: ""
   virtual_com_port_port: 6638
 schema:
@@ -19,8 +14,8 @@ schema:
   virtual_com_port_ip: str
   virtual_com_port_port: port
 ports:
-  80/tcp: 16080 # Mappt den internen Port (oft 80 bei RTKBase) auf 8080 außen
-  2101/tcp: 2101 # Mappt den internen Port (oft 80 bei RTKBase) auf 8080 außen
-uart: true     # GANZ WICHTIG: Erlaubt den Zugriff auf serielle USB-Geräte (für den GNSS-Empfänger)
+  80/tcp: 16080
+  2101/tcp: 2101
+uart: false
 map:
-  - share:rw   # Optional: Ordner einbinden, um Konfigurationen persistent zu speichern
+  - share:rw

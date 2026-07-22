@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     pkg-config \
     libsystemd-dev \
-    socat \
     jq \
     procps \
     && rm -rf /var/lib/apt/lists/*

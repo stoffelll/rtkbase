@@ -3,10 +3,16 @@
 ## [2.7.1] - not released
 
 ### Added
+- Add an amd64 Home Assistant OS add-on with a configurable TCP-connected GNSS source.
 
 ### Changed
+- Connect RTKLIB directly to the remote GNSS TCP stream instead of emulating a serial device with `socat`.
+- Persist the RTKBase `settings.conf` file in Home Assistant add-on data.
 
 ### Fixed
+- Fix the Home Assistant add-on service controller so the main RTKLIB bridge and dependent output services can be started and stopped without systemd.
+- Fix the internal raw GNSS stream port: RTKBase consumers use TCP port 5015, while port 2101 remains reserved for NTRIP.
+- Fix duplicate Home Assistant add-on metadata and restrict the image to its supported amd64 architecture.
 - Fix missing zeroconf installation when executing `./install.sh --all`. Thanks to @Jef239 [#520](https://github.com/Stefal/rtkbase/issues/520)
 - Fix crash whith empty zeroconf service list and missing WinPcap. Thanks to @Jef239 [#520](https://github.com/Stefal/rtkbase/issues/520)
 
