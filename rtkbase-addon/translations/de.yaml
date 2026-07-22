@@ -1,0 +1,28 @@
+configuration:
+  receiver_connection:
+    name: Receiver-Verbindung
+    description: Entfernten TCP-Datenstrom oder lokal angeschlossenen USB-Serial-Empfaenger auswaehlen.
+  tcp_source_host:
+    name: TCP-Quellhost
+    description: IP-Adresse oder Hostname des Serial-zu-TCP-Adapters.
+  tcp_source_port:
+    name: TCP-Quellport
+    description: TCP-Port, der den GNSS-Rohdatenstrom bereitstellt.
+  serial_device:
+    name: Serielles Geraet
+    description: Fuer USB-Empfaenger bevorzugt einen stabilen Pfad unter /dev/serial/by-id/ verwenden.
+  serial_settings:
+    name: Serielle Einstellungen
+    description: RTKLIB-Einstellungen im Format Baudrate:Datenbits:Paritaet:Stoppbits.
+  virtual_com_port_enabled:
+    name: Alter TCP-Modus
+    description: Veraltete Kompatibilitaetsoption fuer Upgrades von Add-on 1.1 und aelter.
+  virtual_com_port_ip:
+    name: Alter TCP-Host
+    description: Veraltete Kompatibilitaetsoption; Wert nach TCP-Quellhost kopieren.
+  virtual_com_port_port:
+    name: Alter TCP-Port
+    description: Veraltete Kompatibilitaetsoption; Wert nach TCP-Quellport kopieren.
+network:
+  80/tcp: RTKBase-Weboberflaeche
+  2101/tcp: Lokaler NTRIP-Caster

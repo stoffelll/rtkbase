@@ -1,0 +1,28 @@
+configuration:
+  receiver_connection:
+    name: Receiver connection
+    description: Select a remote TCP stream or a locally attached USB serial receiver.
+  tcp_source_host:
+    name: TCP source host
+    description: IP address or hostname of the serial-to-TCP adapter.
+  tcp_source_port:
+    name: TCP source port
+    description: TCP port that provides the raw GNSS data stream.
+  serial_device:
+    name: Serial device
+    description: Prefer a stable path under /dev/serial/by-id/ for USB receivers.
+  serial_settings:
+    name: Serial settings
+    description: RTKLIB serial settings in baud:data bits:parity:stop bits format.
+  virtual_com_port_enabled:
+    name: Legacy TCP mode
+    description: Deprecated compatibility option for upgrades from add-on 1.1 and earlier.
+  virtual_com_port_ip:
+    name: Legacy TCP host
+    description: Deprecated compatibility option; copy this value to TCP source host.
+  virtual_com_port_port:
+    name: Legacy TCP port
+    description: Deprecated compatibility option; copy this value to TCP source port.
+network:
+  80/tcp: RTKBase web interface
+  2101/tcp: Local NTRIP caster

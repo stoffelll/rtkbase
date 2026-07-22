@@ -16,26 +16,67 @@ ln -s /data/settings.conf /opt/rtkbase/settings.conf
 
 echo "Lese Home Assistant Add-on Konfiguration..."
 
-# Lese die Werte sicher mit jq aus
-VCP_ENABLED=$(jq --raw-output '.virtual_com_port_enabled // false' /data/options.json)
-VCP_IP=$(jq --raw-output '.virtual_com_port_ip // ""' /data/options.json)
-VCP_PORT=$(jq --raw-output '.virtual_com_port_port // 6638' /data/options.json)
-
-if [ "$VCP_ENABLED" = "true" ] && [ -n "$VCP_IP" ]; then
-    export RTKBASE_TCP_HOST="$VCP_IP"
-    export RTKBASE_TCP_PORT="$VCP_PORT"
-    echo "TCP-GNSS-Quelle konfiguriert: $RTKBASE_TCP_HOST:$RTKBASE_TCP_PORT"
-else
-    echo "FEHLER: TCP-GNSS-Quelle ist deaktiviert oder die IP-Adresse fehlt."
-    exit 1
+# Neue Optionen; die virtual_com_port-Werte bleiben fuer Upgrades von <= 1.1
+# als Rueckfall erhalten.
+RECEIVER_CONNECTION=$(jq --raw-output '.receiver_connection // ""' /data/options.json)
+LEGACY_VCP_ENABLED=$(jq --raw-output '.virtual_com_port_enabled // false' /data/options.json)
+if [ -z "$RECEIVER_CONNECTION" ]; then
+    if [ "$LEGACY_VCP_ENABLED" = "true" ]; then
+        RECEIVER_CONNECTION="tcp"
+    else
+        RECEIVER_CONNECTION="serial"
+    fi
 fi
+
+case "$RECEIVER_CONNECTION" in
+    tcp)
+        TCP_HOST=$(jq --raw-output 'if (.tcp_source_host // "") != "" then .tcp_source_host else (.virtual_com_port_ip // "") end' /data/options.json)
+        TCP_PORT=$(jq --raw-output '.tcp_source_port // .virtual_com_port_port // 6638' /data/options.json)
+        if [ -z "$TCP_HOST" ]; then
+            echo "FEHLER: Im TCP-Modus muss tcp_source_host gesetzt sein."
+            exit 1
+        fi
+        export RTKBASE_RECEIVER_CONNECTION="tcp"
+        export RTKBASE_RECEIVER_SOURCE="${TCP_HOST}:${TCP_PORT}"
+        export RTKBASE_INPUT_URI="tcpcli://${TCP_HOST}:${TCP_PORT}"
+        # Entfernt nur den von Add-on-Version 1.0 erzeugten, nicht mehr
+        # existierenden PTY-Namen. Echte serielle Einstellungen bleiben erhalten.
+        sed -i "s/^com_port='ttyV0'$/com_port=''/" /data/settings.conf
+        ;;
+    serial)
+        SERIAL_DEVICE=$(jq --raw-output '.serial_device // ""' /data/options.json)
+        SERIAL_SETTINGS=$(jq --raw-output '.serial_settings // "115200:8:n:1"' /data/options.json)
+        if [ -z "$SERIAL_DEVICE" ]; then
+            echo "FEHLER: Im Serial-Modus muss serial_device gesetzt sein."
+            exit 1
+        fi
+        case "$SERIAL_DEVICE" in
+            /dev/*) ;;
+            *) SERIAL_DEVICE="/dev/${SERIAL_DEVICE}" ;;
+        esac
+        if [ ! -e "$SERIAL_DEVICE" ]; then
+            echo "FEHLER: Serielles Geraet $SERIAL_DEVICE ist im Add-on nicht vorhanden."
+            exit 1
+        fi
+        export RTKBASE_RECEIVER_CONNECTION="serial"
+        export RTKBASE_RECEIVER_SOURCE="$SERIAL_DEVICE"
+        export RTKBASE_SERIAL_SETTINGS="$SERIAL_SETTINGS"
+        export RTKBASE_INPUT_URI="serial://${SERIAL_DEVICE}:${SERIAL_SETTINGS}"
+        ;;
+    *)
+        echo "FEHLER: receiver_connection muss tcp oder serial sein."
+        exit 1
+        ;;
+esac
+
+echo "GNSS-Eingang: $RTKBASE_RECEIVER_CONNECTION ($RTKBASE_RECEIVER_SOURCE)"
 
 # Der Hauptdienst war auf einem normalen System per systemd beim Boot aktiv.
 # Im Add-on starten wir ihn direkt und lassen die Weboberflaeche denselben PID
 # anschliessend ueber den ServiceController verwalten.
 echo "Starte GNSS-Rohdaten-Bridge auf internem TCP-Port 5015..."
 /usr/bin/str2str \
-    -in "tcpcli://${RTKBASE_TCP_HOST}:${RTKBASE_TCP_PORT}" \
+    -in "$RTKBASE_INPUT_URI" \
     -out "tcpsvr://:5015" \
     -b 1 &
 MAIN_PID=$!

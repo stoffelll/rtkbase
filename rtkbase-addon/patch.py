@@ -48,13 +48,12 @@ class DummySystemdObj:
         self.Stop()
 
         if self.unit_name == "str2str_tcp.service":
-            host = os.environ.get("RTKBASE_TCP_HOST", "")
-            port = os.environ.get("RTKBASE_TCP_PORT", "6638")
-            if not host:
-                raise RuntimeError("RTKBASE_TCP_HOST is not configured")
+            input_uri = os.environ.get("RTKBASE_INPUT_URI", "")
+            if not input_uri:
+                raise RuntimeError("RTKBASE_INPUT_URI is not configured")
             cmd = [
                 "/usr/bin/str2str",
-                "-in", f"tcpcli://{host}:{port}",
+                "-in", input_uri,
                 "-out", "tcpsvr://:5015",
                 "-b", "1",
             ]

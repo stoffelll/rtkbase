@@ -469,8 +469,17 @@ def settings_page():
     rtcm_udp_client_settings = rtkbaseconfig.get_rtcm_udp_client_settings()
     rtcm_serial_settings = rtkbaseconfig.get_rtcm_serial_settings()
     file_settings = rtkbaseconfig.get_file_settings()
+    addon_receiver = None
+    addon_connection = os.environ.get("RTKBASE_RECEIVER_CONNECTION")
+    if addon_connection in ("tcp", "serial"):
+        addon_receiver = {
+            "connection": addon_connection,
+            "source": os.environ.get("RTKBASE_RECEIVER_SOURCE", ""),
+            "serial_settings": os.environ.get("RTKBASE_SERIAL_SETTINGS", ""),
+        }
 
     return render_template("settings.html", main_settings = main_settings,
+                                            addon_receiver = addon_receiver,
                                             ntrip_A_settings = ntrip_A_settings,
                                             ntrip_B_settings = ntrip_B_settings,
                                             ntrip_C_settings = ntrip_C_settings,

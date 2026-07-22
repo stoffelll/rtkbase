@@ -1,21 +1,31 @@
 name: "RTKBase Custom"
-description: "RTKBase mit TCP-angebundenem GNSS-Empfaenger"
-version: "1.1.0"
+description: "RTKBase mit TCP- oder USB-Serial-GNSS-Empfaenger"
+version: "1.2.0"
 slug: "rtkbase_custom"
 init: false
 arch:
   - amd64
 options:
+  receiver_connection: tcp
+  tcp_source_host: ""
+  tcp_source_port: 6638
+  serial_device: ""
+  serial_settings: "115200:8:n:1"
   virtual_com_port_enabled: true
   virtual_com_port_ip: ""
   virtual_com_port_port: 6638
 schema:
+  receiver_connection: list(tcp|serial)
+  tcp_source_host: str
+  tcp_source_port: port
+  serial_device: str
+  serial_settings: str
   virtual_com_port_enabled: bool
   virtual_com_port_ip: str
   virtual_com_port_port: port
 ports:
   80/tcp: 16080
   2101/tcp: 2101
-uart: false
+uart: true
 map:
   - share:rw

@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.2.0] - 2026-07-22
+
+### Added
+
+- Auswahl zwischen `tcp` und `serial` als GNSS-Eingangsmodus.
+- USB-UART-Unterstuetzung mit konfigurierbarem Geraetepfad und seriellen Parametern.
+- Anzeige des aktiven Eingangsmodus und der Quelle in den RTKBase-Einstellungen.
+
+### Changed
+
+- Die Add-on-Konfiguration ist jetzt die zentrale Quelle fuer die Receiver-Verbindung.
+- Im Home-Assistant-Add-on werden die nicht wirksamen RTKBase-COM-Port-Felder durch eine schreibgeschuetzte Verbindungsanzeige ersetzt.
+- `uart` ist fuer die Durchreichung lokaler USB-Serial-Geraete aktiviert.
+
+### Fixed
+
+- Bestehende `virtual_com_port_*`-Optionen werden bei Upgrades weiterhin als TCP-Konfiguration uebernommen.
+- Der veraltete persistierte Wert `ttyV0` wird im TCP-Modus automatisch entfernt.
+
 ## [1.1.0] - 2026-07-22
 
 ### Added
