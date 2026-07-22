@@ -34,25 +34,6 @@ class DummySystemdObj:
         states[self.unit_name] = is_active
         with open(STATE_FILE, "w") as f: json.dump(states, f)
 
-    def _get_exec_start(self):
-        import os
-        # Suche die echte Service-Datei, um das Kommando zu extrahieren
-        paths = [
-            f"/etc/systemd/system/{self.unit_name}",
-            f"/lib/systemd/system/{self.unit_name}",
-            f"/opt/rtkbase/{self.unit_name}",
-            f"/opt/rtkbase/services/{self.unit_name}"
-        ]
-        for p in paths:
-            if os.path.exists(p):
-                with open(p, "r") as f:
-                    for line in f:
-                        if line.strip().startswith("ExecStart="):
-                            cmd = line.strip().split("=", 1)[1].strip()
-                            cmd = cmd.replace("%i", self.unit_name.replace("rtkbase_", "").replace(".service", ""))
-                            return cmd
-        return None
-
     @property
     def ActiveState(self): return self._state
     @property
@@ -61,11 +42,15 @@ class DummySystemdObj:
     def Start(self, *args, **kwargs):
         self._state, self._sub = b"active", b"running"
         self._save_state(True)
-        cmd = self._get_exec_start()
-        if cmd:
+        
+        if "main" in self.unit_name.lower():
             import subprocess, os
             pid_file = f"/tmp/{self.unit_name}.pid"
-            self.Stop()  # Beende alte Instanz zur Sicherheit
+            self.Stop()
+            
+            # Nutze das native x86_64 str2str für unseren virtuellen COM-Port
+            cmd = "/usr/bin/str2str -in serial:///tmp/ttyV0#baud=115200 -out tcpsvr://:2101"
+            
             proc = subprocess.Popen(cmd, shell=True, executable="/bin/bash")
             with open(pid_file, "w") as f: f.write(str(proc.pid))
         return True
@@ -77,11 +62,13 @@ class DummySystemdObj:
         pid_file = f"/tmp/{self.unit_name}.pid"
         if os.path.exists(pid_file):
             try:
-                with open(pid_file, "r") as f: pid = int(f.read().strip())
+                with open(pid_file, "r", encoding="utf-8") as f: pid = int(f.read().strip())
                 os.kill(pid, signal.SIGTERM)
                 subprocess.call(["pkill", "-P", str(pid)])
             except: pass
-            finally: os.remove(pid_file)
+            finally: 
+                try: os.remove(pid_file)
+                except: pass
         return True
 
     def Restart(self, *args, **kwargs):
