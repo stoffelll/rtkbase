@@ -24,19 +24,30 @@ RUN if [ -f "web_app/requirements.txt" ]; then \
         pip3 install --no-cache-dir --upgrade "gevent>=23.9.1" greenlet urllib3 requests --break-system-packages; \
     fi
 
-# --- UMFASSENDER SYSTEMD / DBUS MOCK (Final, mit _interfaces) ---
+# --- UMFASSENDER SYSTEMD / DBUS MOCK (Intelligent / Stateful) ---
 RUN echo 'path = "/opt/rtkbase/web_app/ServiceController.py"' > patch.py && \
     echo 'with open(path, "r") as f: code = f.read()' >> patch.py && \
     echo 'mock = """' >> patch.py && \
     echo 'class DummySystemdObj:' >> patch.py && \
+    echo '    def __init__(self, *args, **kwargs):' >> patch.py && \
+    echo '        self._state = b"active"' >> patch.py && \
+    echo '        self._sub = b"running"' >> patch.py && \
     echo '    @property' >> patch.py && \
-    echo '    def ActiveState(self): return b"inactive"' >> patch.py && \
+    echo '    def ActiveState(self): return self._state' >> patch.py && \
     echo '    @property' >> patch.py && \
-    echo '    def SubState(self): return b"dead"' >> patch.py && \
-    echo '    def Start(self, *args, **kwargs): return True' >> patch.py && \
-    echo '    def Stop(self, *args, **kwargs): return True' >> patch.py && \
-    echo '    def Restart(self, *args, **kwargs): return True' >> patch.py && \
-    echo '    def GetUnitFileState(self, *args, **kwargs): return b"disabled"' >> patch.py && \
+    echo '    def SubState(self): return self._sub' >> patch.py && \
+    echo '    def Start(self, *args, **kwargs):' >> patch.py && \
+    echo '        self._state = b"active"' >> patch.py && \
+    echo '        self._sub = b"running"' >> patch.py && \
+    echo '        return True' >> patch.py && \
+    echo '    def Stop(self, *args, **kwargs):' >> patch.py && \
+    echo '        self._state = b"inactive"' >> patch.py && \
+    echo '        self._sub = b"dead"' >> patch.py && \
+    echo '        return True' >> patch.py && \
+    echo '    def Restart(self, *args, **kwargs):' >> patch.py && \
+    echo '        self.Start()' >> patch.py && \
+    echo '        return True' >> patch.py && \
+    echo '    def GetUnitFileState(self, *args, **kwargs): return b"enabled"' >> patch.py && \
     echo '    @property' >> patch.py && \
     echo '    def Unit(self): return self' >> patch.py && \
     echo '    @property' >> patch.py && \
@@ -47,10 +58,8 @@ RUN echo 'path = "/opt/rtkbase/web_app/ServiceController.py"' > patch.py && \
     echo '    def User(self): return b"root"' >> patch.py && \
     echo '    @property' >> patch.py && \
     echo '    def _interfaces(self): return set()' >> patch.py && \
-    echo 'class Unit(DummySystemdObj):' >> patch.py && \
-    echo '    def __init__(self, *args, **kwargs): pass' >> patch.py && \
-    echo 'class Manager(DummySystemdObj):' >> patch.py && \
-    echo '    def __init__(self, *args, **kwargs): pass' >> patch.py && \
+    echo 'class Unit(DummySystemdObj): pass' >> patch.py && \
+    echo 'class Manager(DummySystemdObj): pass' >> patch.py && \
     echo '"""' >> patch.py && \
     echo 'code = code.replace("class ServiceController(object):", mock + "class ServiceController(object):")' >> patch.py && \
     echo 'with open(path, "w") as f: f.write(code)' >> patch.py && \
