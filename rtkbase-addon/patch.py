@@ -48,8 +48,8 @@ class DummySystemdObj:
             pid_file = f"/tmp/{self.unit_name}.pid"
             self.Stop()
             
-            # Nutze das native x86_64 str2str für unseren virtuellen COM-Port
-            cmd = "/usr/bin/str2str -in serial:///tmp/ttyV0#baud=115200 -out tcpsvr://:2101"
+            # Verwende die exakt funktionierende Syntax für str2str
+            cmd = "/usr/bin/str2str -in file:///tmp/ttyV0 -out tcpsvr://:2101"
             
             proc = subprocess.Popen(cmd, shell=True, executable="/bin/bash")
             with open(pid_file, "w") as f: f.write(str(proc.pid))
