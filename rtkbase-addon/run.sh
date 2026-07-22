@@ -1,6 +1,24 @@
 #!/bin/bash
 set -e
 
+echo "Stelle Persistenz für RTKBase Einstellungen her..."
+
+# 1. Haupt-Einstellungsdatei persistieren
+if [ ! -f /data/settings.json ]; then
+    echo "{}" > /data/settings.json
+    [ -f /opt/rtkbase/settings.json ] && cp /opt/rtkbase/settings.json /data/settings.json
+fi
+rm -f /opt/rtkbase/settings.json
+ln -s /data/settings.json /opt/rtkbase/settings.json
+
+# 2. Conf-Ordner (für Koordinaten, Port-Settings) persistieren
+if [ ! -d /data/conf ]; then
+    mkdir -p /data/conf
+    [ -d /opt/rtkbase/conf ] && cp -r /opt/rtkbase/conf/* /data/conf/ 2>/dev/null || true
+fi
+rm -rf /opt/rtkbase/conf
+ln -s /data/conf /opt/rtkbase/conf
+
 echo "Lese Home Assistant Add-on Konfiguration..."
 
 # Lese die Werte sicher mit jq aus
@@ -17,13 +35,11 @@ if [ "$VCP_ENABLED" = "true" ] && [ -n "$VCP_IP" ]; then
     # Starte socat im Hintergrund
     socat pty,link=/tmp/ttyV0,raw,echo=0 tcp:${VCP_IP}:${VCP_PORT} &
     
-    # Warte kurz, damit die virtuelle Schnittstelle erstellt wird
     sleep 2
-    
     if [ -e /tmp/ttyV0 ]; then
         echo "/tmp/ttyV0 erfolgreich erstellt."
     else
-        echo "FEHLER: /tmp/ttyV0 konnte nicht erstellt werden. socat fehlgeschlagen?"
+        echo "FEHLER: /tmp/ttyV0 konnte nicht erstellt werden."
     fi
 else
     echo "Virtueller COM-Port ist deaktiviert oder IP fehlt."
