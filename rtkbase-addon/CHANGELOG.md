@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1] - 2026-07-22
+
+### Fixed
+
+- Docker-Build-Cache fuer den RTKBase-Quellcode versionsabhaengig gemacht.
+- Verhindert, dass nach einem Add-on-Update eine alte Weboberflaeche mit weiterhin sichtbaren COM-Port-Pflichtfeldern ausgeliefert wird.
+
 ## [1.2.0] - 2026-07-22
 
 ### Added

@@ -24,8 +24,12 @@ RUN git clone https://github.com/rtklibexplorer/RTKLIB.git /tmp/RTKLIB && \
     chmod +x /usr/bin/str2str && \
     rm -rf /tmp/RTKLIB
 	
-# 3. RTKBaserepository klonen
-RUN git clone https://github.com/stoffelll/rtkbase.git /opt/rtkbase
+# 3. RTKBase-Repository klonen. Die Add-on-Version ist absichtlich Teil der
+# Build-Schicht, damit Docker bei jedem Release den aktuellen Web-App-Quellcode
+# abruft und keinen veralteten git-clone-Layer wiederverwendet.
+ARG RTKBASE_SOURCE_VERSION=1.2.1
+RUN echo "Building RTKBase add-on ${RTKBASE_SOURCE_VERSION}" && \
+    git clone --depth 1 --branch master https://github.com/stoffelll/rtkbase.git /opt/rtkbase
 
 WORKDIR /opt/rtkbase
 

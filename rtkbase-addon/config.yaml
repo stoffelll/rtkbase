@@ -1,6 +1,6 @@
 name: "RTKBase Custom"
 description: "RTKBase mit TCP- oder USB-Serial-GNSS-Empfaenger"
-version: "1.2.0"
+version: "1.2.1"
 slug: "rtkbase_custom"
 init: false
 arch:

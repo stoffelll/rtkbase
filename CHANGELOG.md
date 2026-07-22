@@ -13,6 +13,7 @@
 - Keep the traditional serial settings UI for standalone installations while using Home Assistant add-on options as the connection source inside the add-on.
 
 ### Fixed
+- Invalidate the Docker source layer for every add-on release so updated RTKBase web templates are included in rebuilt images.
 - Migrate legacy `virtual_com_port_*` options and remove the obsolete persisted `ttyV0` value in TCP mode.
 - Fix the Home Assistant add-on service controller so the main RTKLIB bridge and dependent output services can be started and stopped without systemd.
 - Fix the internal raw GNSS stream port: RTKBase consumers use TCP port 5015, while port 2101 remains reserved for NTRIP.
